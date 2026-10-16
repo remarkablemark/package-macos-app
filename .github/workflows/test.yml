@@ -31,8 +31,6 @@ jobs:
 
       - name: Verify app bundle
         shell: bash
-        env:
-          APP_PATH: ${{ steps.package.outputs.app-path }}
         run: |
           set -euo pipefail
           test -d "$APP_PATH/Contents/MacOS"
@@ -46,6 +44,8 @@ jobs:
           if command -v plutil >/dev/null 2>&1; then
             plutil -lint "$APP_PATH/Contents/Info.plist"
           fi
+        env:
+          APP_PATH: ${{ steps.package.outputs.app-path }}
 
       - name: Package macOS app with options
         id: package-options
@@ -60,8 +60,6 @@ jobs:
 
       - name: Verify app bundle with options
         shell: bash
-        env:
-          APP_PATH: ${{ steps.package-options.outputs.app-path }}
         run: |
           set -euo pipefail
           test -f "$APP_PATH/Contents/MacOS/Custom App"
@@ -71,9 +69,11 @@ jobs:
           if command -v plutil >/dev/null 2>&1; then
             plutil -lint "$APP_PATH/Contents/Info.plist"
           fi
+        env:
+          APP_PATH: ${{ steps.package-options.outputs.app-path }}
 
       - name: Package macOS app with missing binary
-        id: missing_binary
+        id: missing-binary
         continue-on-error: true
         uses: ./
         with:
@@ -81,11 +81,30 @@ jobs:
 
       - name: Expect failure when binary is missing
         shell: bash
-        env:
-          OUTCOME: ${{ steps.missing_binary.outcome }}
         run: |
           set -euo pipefail
           if [ "$OUTCOME" != failure ]; then
             echo "expected the action to fail for a missing binary" >&2
             exit 1
           fi
+        env:
+          OUTCOME: ${{ steps.missing-binary.outcome }}
+
+      - name: Package macOS app with invalid version
+        id: invalid-version
+        continue-on-error: true
+        uses: ./
+        with:
+          binary: test-cli
+          version: latest
+
+      - name: Expect failure when version is invalid
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "$OUTCOME" != failure ]; then
+            echo "expected the action to fail for an invalid version" >&2
+            exit 1
+          fi
+        env:
+          OUTCOME: ${{ steps.invalid-version.outcome }}

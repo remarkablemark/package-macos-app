@@ -79,7 +79,7 @@ See [action.yml](action.yml)
 
 ### `version`
 
-**Required**: App version (`CFBundleShortVersionString` and `CFBundleVersion`). For tag-triggered builds, pass the tag (e.g., `1.2.3`):
+**Required**: App version (`CFBundleShortVersionString` and `CFBundleVersion`). Must start with a digit (e.g., `1.2.3` or `1.2.3-beta.1`). For tag-triggered builds, pass the tag:
 
 ```yaml
 - uses: remarkablemark/package-macos-app@v1

@@ -46,9 +46,14 @@ runs:
           echo "error: icon not found: $ICON" >&2
           exit 1
         fi
+        if ! printf '%s' "$VERSION" | grep -Eq '^[0-9][0-9A-Za-z.-]*$'; then
+          echo "error: invalid version: $VERSION" >&2
+          exit 1
+        fi
       env:
         BINARY: ${{ inputs.binary }}
         ICON: ${{ inputs.icon }}
+        VERSION: ${{ inputs.version }}
 
     - name: Build app bundle
       id: build
