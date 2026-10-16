@@ -41,6 +41,7 @@ jobs:
           fi
           grep -q '<string>com.example.test-cli</string>' "$APP_PATH/Contents/Info.plist"
           grep -q '<string>2.3.4</string>' "$APP_PATH/Contents/Info.plist"
+          grep -q '<key>NSHighResolutionCapable</key>' "$APP_PATH/Contents/Info.plist"
           if command -v plutil >/dev/null 2>&1; then
             plutil -lint "$APP_PATH/Contents/Info.plist"
           fi
@@ -54,6 +55,7 @@ jobs:
           binary: test-cli
           name: Custom App
           bundle-id: com.example.custom
+          executable: custom-app
           version: 1.0.0
           icon: test-icon.icns
           output: dist
@@ -62,9 +64,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -f "$APP_PATH/Contents/MacOS/Custom App"
+          test -f "$APP_PATH/Contents/MacOS/custom-app"
           test -f "$APP_PATH/Contents/Resources/test-icon.icns"
           grep -q '<string>com.example.custom</string>' "$APP_PATH/Contents/Info.plist"
+          grep -q '<string>custom-app</string>' "$APP_PATH/Contents/Info.plist"
           grep -q '<key>CFBundleIconFile</key>' "$APP_PATH/Contents/Info.plist"
           if command -v plutil >/dev/null 2>&1; then
             plutil -lint "$APP_PATH/Contents/Info.plist"
