@@ -24,11 +24,16 @@ jobs:
           binary: ./my-app
           version: 1.2.3
 
+      - name: Zip app bundle
+        env:
+          APP_PATH: ${{ steps.package.outputs.app-path }}
+        run: ditto -c -k --keepParent "$APP_PATH" my-app.zip
+
       - name: Upload app bundle
         uses: actions/upload-artifact@v7
         with:
           name: my-app
-          path: ${{ steps.package.outputs.app-path }}
+          path: my-app.zip
 ```
 
 ## Usage
@@ -108,7 +113,18 @@ See [action.yml](action.yml)
 
 ### `app-path`
 
-Path to the created `.app` bundle.
+Path to the created `.app` bundle. The consuming step must reference the packaging step by its `id:` (see Quick Start).
+
+Zip the bundle to preserve the executable bit — GitHub artifacts do not:
+
+```yaml
+- name: Zip app bundle
+  env:
+    APP_PATH: ${{ steps.package.outputs.app-path }}
+  run: ditto -c -k --keepParent "$APP_PATH" My.App.zip
+```
+
+For job-to-job transfer on non-macOS runners, use `tar czf` instead of `ditto`.
 
 ## License
 
