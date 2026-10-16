@@ -1,5 +1,5 @@
-name: github-actions-composite-template
-description: GitHub Actions Composite Template
+name: package-macos-app
+description: 📦 Packages a prebuilt binary into a macOS app bundle with GitHub Actions.
 author: remarkablemark
 
 inputs:
@@ -19,5 +19,5 @@ runs:
         VERSION: ${{ inputs.version }}
 
 branding:
-  icon: activity
-  color: white
+  icon: package
+  color: orange
