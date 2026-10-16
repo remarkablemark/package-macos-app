@@ -38,7 +38,7 @@ jobs:
           path: my-app.zip
 ```
 
-> [!Note]
+> [!NOTE]
 > To preserve the executable bit when uploading to artifacts, zip the bundle first.
 > On non-macOS runners, use `tar czf` instead of `ditto`.
 
