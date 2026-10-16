@@ -61,6 +61,7 @@ jobs:
     binary: ./my-app
     name: My App
     bundle-id: com.example.my-app
+    executable: my-app
     version: 1.2.3
     icon: ./assets/AppIcon.icns
     output: dist
@@ -73,7 +74,7 @@ My App.app/
 └── Contents
     ├── Info.plist
     ├── MacOS
-    │   └── My App
+    │   └── my-app
     └── Resources
         └── AppIcon.icns
 ```
@@ -106,6 +107,10 @@ See [action.yml](action.yml)
 ### `bundle-id`
 
 **Optional**: Bundle identifier (`CFBundleIdentifier`). Defaults to `com.example.<app-name>`.
+
+### `executable`
+
+**Optional**: Executable filename in `Contents/MacOS`. Defaults to the app name.
 
 ### `icon`
 
