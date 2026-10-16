@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/remarkablemark/package-macos-app/compare/v1.0.0...v1.1.0) (2026-10-16)
+
+
+### Features
+
+* add executable input and NSHighResolutionCapable ([af3052f](https://github.com/remarkablemark/package-macos-app/commit/af3052fd08224df2ae6cd1ca38e0818a8c21384f))
+
 ## 1.0.0 (2026-10-16)
 
 
