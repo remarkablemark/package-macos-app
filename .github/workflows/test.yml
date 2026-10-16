@@ -15,10 +15,96 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      - name: Run action
-        uses: ./
+      - name: Create test fixtures
+        shell: bash
+        run: |
+          printf '#!/bin/sh\necho hello\n' > test-cli
+          chmod +x test-cli
+          printf 'icns' > test-icon.icns
 
-      - name: Run action with version
+      - name: Package macOS app
+        id: package
         uses: ./
         with:
+          binary: test-cli
           version: 2.3.4
+
+      - name: Verify app bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -d "$APP_PATH/Contents/MacOS"
+          test -f "$APP_PATH/Contents/Info.plist"
+          test -f "$APP_PATH/Contents/MacOS/test-cli"
+          if [ "$RUNNER_OS" != Windows ]; then
+            test -x "$APP_PATH/Contents/MacOS/test-cli"
+          fi
+          grep -q '<string>com.example.test-cli</string>' "$APP_PATH/Contents/Info.plist"
+          grep -q '<string>2.3.4</string>' "$APP_PATH/Contents/Info.plist"
+          if command -v plutil >/dev/null 2>&1; then
+            plutil -lint "$APP_PATH/Contents/Info.plist"
+          fi
+        env:
+          APP_PATH: ${{ steps.package.outputs.app-path }}
+
+      - name: Package macOS app with options
+        id: package-options
+        uses: ./
+        with:
+          binary: test-cli
+          name: Custom App
+          bundle-id: com.example.custom
+          version: 1.0.0
+          icon: test-icon.icns
+          output: dist
+
+      - name: Verify app bundle with options
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f "$APP_PATH/Contents/MacOS/Custom App"
+          test -f "$APP_PATH/Contents/Resources/test-icon.icns"
+          grep -q '<string>com.example.custom</string>' "$APP_PATH/Contents/Info.plist"
+          grep -q '<key>CFBundleIconFile</key>' "$APP_PATH/Contents/Info.plist"
+          if command -v plutil >/dev/null 2>&1; then
+            plutil -lint "$APP_PATH/Contents/Info.plist"
+          fi
+        env:
+          APP_PATH: ${{ steps.package-options.outputs.app-path }}
+
+      - name: Package macOS app with missing binary
+        id: missing-binary
+        continue-on-error: true
+        uses: ./
+        with:
+          binary: missing-binary
+
+      - name: Expect failure when binary is missing
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "$OUTCOME" != failure ]; then
+            echo "expected the action to fail for a missing binary" >&2
+            exit 1
+          fi
+        env:
+          OUTCOME: ${{ steps.missing-binary.outcome }}
+
+      - name: Package macOS app with invalid version
+        id: invalid-version
+        continue-on-error: true
+        uses: ./
+        with:
+          binary: test-cli
+          version: latest
+
+      - name: Expect failure when version is invalid
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "$OUTCOME" != failure ]; then
+            echo "expected the action to fail for an invalid version" >&2
+            exit 1
+          fi
+        env:
+          OUTCOME: ${{ steps.invalid-version.outcome }}

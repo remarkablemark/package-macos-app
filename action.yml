@@ -1,22 +1,132 @@
 name: package-macos-app
-description: 📦 Packages a prebuilt binary into a macOS app bundle with GitHub Actions.
+description: 📦 Packages a prebuilt binary into an unsigned macOS app bundle with GitHub Actions.
 author: remarkablemark
 
 inputs:
-  version:
-    description: Version
+  binary:
+    description: Path to the prebuilt macOS binary
+    required: true
+  name:
+    description: App name (defaults to the binary filename without extension)
     required: false
-    default: 1.2.3
+    default: ''
+  bundle-id:
+    description: Bundle identifier (defaults to com.example.<app-name>)
+    required: false
+    default: ''
+  version:
+    description: App version (CFBundleShortVersionString and CFBundleVersion)
+    required: true
+  icon:
+    description: Path to an .icns icon file
+    required: false
+    default: ''
+  output:
+    description: Directory where the .app bundle is created
+    required: false
+    default: '.'
+
+outputs:
+  app-path:
+    description: Path to the created .app bundle
+    value: ${{ steps.build.outputs.app-path }}
 
 runs:
   using: composite
   steps:
-    - name: Print version
+    - name: Validate inputs
       shell: bash
       run: |
-        echo "version: $VERSION"
+        set -euo pipefail
+        if [ ! -f "$BINARY" ]; then
+          echo "error: binary not found: $BINARY" >&2
+          exit 1
+        fi
+        if [ -n "$ICON" ] && [ ! -f "$ICON" ]; then
+          echo "error: icon not found: $ICON" >&2
+          exit 1
+        fi
+        if ! printf '%s' "$VERSION" | grep -Eq '^[0-9][0-9A-Za-z.-]*$'; then
+          echo "error: invalid version: $VERSION" >&2
+          exit 1
+        fi
       env:
+        BINARY: ${{ inputs.binary }}
+        ICON: ${{ inputs.icon }}
         VERSION: ${{ inputs.version }}
+
+    - name: Build app bundle
+      id: build
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        app_name="$APP_NAME"
+        if [ -z "$app_name" ]; then
+          app_name="$(basename "$BINARY")"
+          app_name="${app_name%.*}"
+        fi
+        if [ -z "$app_name" ]; then
+          app_name="app"
+        fi
+
+        if [ -z "$BUNDLE_ID" ]; then
+          slug="$(printf '%s' "$app_name" | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9' '-' | sed -e 's/-\{1,\}/-/g' -e 's/-$//')"
+          BUNDLE_ID="com.example.${slug:-app}"
+        fi
+
+        xml_escape() {
+          printf '%s' "$1" | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g' -e 's/"/\&quot;/g'
+        }
+
+        app_path="${OUTPUT_DIR%/}/$app_name.app"
+        app_path="${app_path#./}"
+        contents="$app_path/Contents"
+        mkdir -p "$contents/MacOS" "$contents/Resources"
+
+        cp "$BINARY" "$contents/MacOS/$app_name"
+        chmod +x "$contents/MacOS/$app_name"
+
+        icon_plist=""
+        if [ -n "$ICON" ]; then
+          icon_name="$(basename "$ICON")"
+          icon_plist="$(printf '  <key>CFBundleIconFile</key>\n  <string>%s</string>' "$(xml_escape "${icon_name%.*}")")"
+          cp "$ICON" "$contents/Resources/$icon_name"
+        fi
+
+        cat > "$contents/Info.plist" <<EOF
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+          <key>CFBundleExecutable</key>
+          <string>$(xml_escape "$app_name")</string>
+          <key>CFBundleIdentifier</key>
+          <string>$(xml_escape "$BUNDLE_ID")</string>
+          <key>CFBundleName</key>
+          <string>$(xml_escape "$app_name")</string>
+          <key>CFBundlePackageType</key>
+          <string>APPL</string>
+          <key>CFBundleShortVersionString</key>
+          <string>$(xml_escape "$APP_VERSION")</string>
+          <key>CFBundleVersion</key>
+          <string>$(xml_escape "$APP_VERSION")</string>
+          <key>CFBundleInfoDictionaryVersion</key>
+          <string>6.0</string>
+        $icon_plist
+        </dict>
+        </plist>
+        EOF
+
+        echo "Created $app_name.app at $app_path"
+        echo "app-path=$app_path" >> "$GITHUB_OUTPUT"
+      env:
+        BINARY: ${{ inputs.binary }}
+        APP_NAME: ${{ inputs.name }}
+        BUNDLE_ID: ${{ inputs.bundle-id }}
+        APP_VERSION: ${{ inputs.version }}
+        ICON: ${{ inputs.icon }}
+        OUTPUT_DIR: ${{ inputs.output }}
 
 branding:
   icon: package
