@@ -36,6 +36,10 @@ jobs:
           path: my-app.zip
 ```
 
+> [!Note]
+> To preserve the executable bit when uploading to artifacts, zip the bundle first.
+> On non-macOS runners, use `tar czf` instead of `ditto`.
+
 ## Usage
 
 **Basic:**
@@ -72,7 +76,7 @@ My App.app/
         └── AppIcon.icns
 ```
 
-The bundle is **unsigned** — sign it with `codesign` before distribution if needed.
+The bundle is **unsigned**. Sign it with `codesign` before distribution if needed.
 
 See [action.yml](action.yml)
 
@@ -124,8 +128,6 @@ Path to the created `.app` bundle. The consuming step must reference the packagi
 
 - run: echo "${{ steps.package.outputs.app-path }}"
 ```
-
-To preserve the executable bit when uploading to artifacts, zip the bundle first. On non-macOS runners, use `tar czf` instead of `ditto`.
 
 ## License
 
