@@ -17,10 +17,6 @@ inputs:
     description: Bundle identifier (defaults to com.example.<app-name>)
     required: false
     default: ''
-  executable:
-    description: Executable filename in Contents/MacOS (defaults to the app name)
-    required: false
-    default: ''
   icon:
     description: Path to an .icns icon file
     required: false
@@ -54,15 +50,10 @@ runs:
           echo "error: invalid version: $VERSION" >&2
           exit 1
         fi
-        if [ -n "$EXECUTABLE" ] && printf '%s' "$EXECUTABLE" | grep -q '/'; then
-          echo "error: executable must be a filename, not a path: $EXECUTABLE" >&2
-          exit 1
-        fi
       env:
         BINARY: ${{ inputs.binary }}
         ICON: ${{ inputs.icon }}
         VERSION: ${{ inputs.version }}
-        EXECUTABLE: ${{ inputs.executable }}
 
     - name: Build app bundle
       id: build
@@ -79,11 +70,6 @@ runs:
           app_name="app"
         fi
 
-        executable="$EXECUTABLE"
-        if [ -z "$executable" ]; then
-          executable="$app_name"
-        fi
-
         if [ -z "$BUNDLE_ID" ]; then
           slug="$(printf '%s' "$app_name" | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9' '-' | sed -e 's/-\{1,\}/-/g' -e 's/-$//')"
           BUNDLE_ID="com.example.${slug:-app}"
@@ -98,8 +84,8 @@ runs:
         contents="$app_path/Contents"
         mkdir -p "$contents/MacOS" "$contents/Resources"
 
-        cp "$BINARY" "$contents/MacOS/$executable"
-        chmod +x "$contents/MacOS/$executable"
+        cp "$BINARY" "$contents/MacOS/$app_name"
+        chmod +x "$contents/MacOS/$app_name"
 
         icon_plist=""
         if [ -n "$ICON" ]; then
@@ -114,7 +100,7 @@ runs:
         <plist version="1.0">
         <dict>
           <key>CFBundleExecutable</key>
-          <string>$(xml_escape "$executable")</string>
+          <string>$(xml_escape "$app_name")</string>
           <key>CFBundleIdentifier</key>
           <string>$(xml_escape "$BUNDLE_ID")</string>
           <key>CFBundleName</key>
@@ -140,7 +126,6 @@ runs:
         BINARY: ${{ inputs.binary }}
         APP_NAME: ${{ inputs.name }}
         BUNDLE_ID: ${{ inputs.bundle-id }}
-        EXECUTABLE: ${{ inputs.executable }}
         APP_VERSION: ${{ inputs.version }}
         ICON: ${{ inputs.icon }}
         OUTPUT_DIR: ${{ inputs.output }}
