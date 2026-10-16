@@ -19,6 +19,7 @@ description: Expert engineer for this GitHub Actions composite action
 - Keep shell snippets short and portable
 - Use explicit workflow `permissions`
 - Follow GitHub Actions security best practices, especially least-privilege `permissions`, pinned action versions, and avoiding unnecessary secret or token exposure
+- Evaluate every feature by its end-user impact; do not add maintainer-only conveniences
 - Use Conventional Commits: `<type>(<scope>): <description>`
 - Create a PR with `.github/PULL_REQUEST_TEMPLATE.md`
 
