@@ -25,9 +25,9 @@ jobs:
           version: 1.2.3
 
       - name: Zip app bundle
+        run: ditto -c -k --keepParent "$APP_PATH" my-app.zip
         env:
           APP_PATH: ${{ steps.package.outputs.app-path }}
-        run: ditto -c -k --keepParent "$APP_PATH" my-app.zip
 
       - name: Upload app bundle
         uses: actions/upload-artifact@v7
@@ -113,18 +113,19 @@ See [action.yml](action.yml)
 
 ### `app-path`
 
-Path to the created `.app` bundle. The consuming step must reference the packaging step by its `id:` (see Quick Start).
-
-Zip the bundle to preserve the executable bit — GitHub artifacts do not:
+Path to the created `.app` bundle. The consuming step must reference the packaging step by its `id:`:
 
 ```yaml
-- name: Zip app bundle
-  env:
-    APP_PATH: ${{ steps.package.outputs.app-path }}
-  run: ditto -c -k --keepParent "$APP_PATH" My.App.zip
+- uses: remarkablemark/package-macos-app@v1
+  id: package
+  with:
+    binary: ./my-app
+    version: 1.2.3
+
+- run: echo "${{ steps.package.outputs.app-path }}"
 ```
 
-For job-to-job transfer on non-macOS runners, use `tar czf` instead of `ditto`.
+To preserve the executable bit when uploading to artifacts, zip the bundle first. On non-macOS runners, use `tar czf` instead of `ditto`.
 
 ## License
 
