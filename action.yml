@@ -1,5 +1,5 @@
 name: package-macos-app
-description: 📦 Packages a prebuilt binary into a macOS app bundle with GitHub Actions.
+description: 📦 Packages a prebuilt binary into an unsigned macOS app bundle with GitHub Actions.
 author: remarkablemark
 
 inputs:
@@ -15,9 +15,8 @@ inputs:
     required: false
     default: ''
   version:
-    description: Version
-    required: false
-    default: 1.2.3
+    description: App version (CFBundleShortVersionString and CFBundleVersion)
+    required: true
   icon:
     description: Path to an .icns icon file
     required: false

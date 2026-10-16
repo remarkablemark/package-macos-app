@@ -21,12 +21,13 @@ jobs:
         id: package
         uses: remarkablemark/package-macos-app@v1
         with:
-          binary: ./my-cli
+          binary: ./my-app
+          version: 1.2.3
 
       - name: Upload app bundle
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
-          name: my-cli
+          name: my-app
           path: ${{ steps.package.outputs.app-path }}
 ```
 
@@ -37,7 +38,8 @@ jobs:
 ```yaml
 - uses: remarkablemark/package-macos-app@v1
   with:
-    binary: ./my-cli
+    binary: ./my-app
+    version: 1.2.3
 ```
 
 **Custom name, bundle identifier, and icon:**
@@ -45,9 +47,9 @@ jobs:
 ```yaml
 - uses: remarkablemark/package-macos-app@v1
   with:
-    binary: ./my-cli
-    name: My CLI
-    bundle-id: io.example.my-cli
+    binary: ./my-app
+    name: My App
+    bundle-id: com.example.my-app
     version: 1.2.3
     icon: ./assets/AppIcon.icns
     output: dist
@@ -56,11 +58,11 @@ jobs:
 The action creates the following bundle structure:
 
 ```
-My CLI.app/
+My App.app/
 └── Contents
     ├── Info.plist
     ├── MacOS
-    │   └── My CLI
+    │   └── My App
     └── Resources
         └── AppIcon.icns
 ```
@@ -73,34 +75,34 @@ See [action.yml](action.yml)
 
 ### `binary`
 
-**Required**: path to the prebuilt macOS binary.
-
-### `name`
-
-**Optional**: the app name. Defaults to the binary filename without extension.
-
-### `bundle-id`
-
-**Optional**: the bundle identifier (`CFBundleIdentifier`). Defaults to `com.example.<app-name>`.
+**Required**: Path to the prebuilt macOS binary.
 
 ### `version`
 
-**Optional**: the version (`CFBundleShortVersionString` and `CFBundleVersion`). Defaults to `1.2.3`:
+**Required**: App version (`CFBundleShortVersionString` and `CFBundleVersion`). For tag-triggered builds, pass the tag (e.g., `1.2.3`):
 
 ```yaml
 - uses: remarkablemark/package-macos-app@v1
   with:
-    binary: ./my-cli
-    version: 2.3.4
+    binary: ./my-app
+    version: ${{ github.ref_name }}
 ```
+
+### `name`
+
+**Optional**: App name. Defaults to the binary filename without extension.
+
+### `bundle-id`
+
+**Optional**: Bundle identifier (`CFBundleIdentifier`). Defaults to `com.example.<app-name>`.
 
 ### `icon`
 
-**Optional**: path to an `.icns` icon file, copied to `Contents/Resources`.
+**Optional**: Path to an `.icns` icon file, copied to `Contents/Resources`.
 
 ### `output`
 
-**Optional**: the directory where the `.app` bundle is created. Defaults to `.`.
+**Optional**: Directory where the `.app` bundle is created. Defaults to `.`.
 
 ## Outputs
 

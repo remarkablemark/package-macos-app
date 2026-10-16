@@ -53,7 +53,8 @@ jobs:
         with:
           binary: test-cli
           name: Custom App
-          bundle-id: io.example.custom
+          bundle-id: com.example.custom
+          version: 1.0.0
           icon: test-icon.icns
           output: dist
 
@@ -65,7 +66,7 @@ jobs:
           set -euo pipefail
           test -f "$APP_PATH/Contents/MacOS/Custom App"
           test -f "$APP_PATH/Contents/Resources/test-icon.icns"
-          grep -q '<string>io.example.custom</string>' "$APP_PATH/Contents/Info.plist"
+          grep -q '<string>com.example.custom</string>' "$APP_PATH/Contents/Info.plist"
           grep -q '<key>CFBundleIconFile</key>' "$APP_PATH/Contents/Info.plist"
           if command -v plutil >/dev/null 2>&1; then
             plutil -lint "$APP_PATH/Contents/Info.plist"
