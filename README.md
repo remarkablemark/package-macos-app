@@ -17,6 +17,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
 
+      # build binary...
+
       - name: Package macOS app
         id: package
         uses: remarkablemark/package-macos-app@v1
